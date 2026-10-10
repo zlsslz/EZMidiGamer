@@ -11,10 +11,10 @@ so you can play any game with keys, wheels and knobs.
 Originally built for Minilab3 in Minecraft Java Edition.
 
 
-请在第一次使用时在python文件中自行修改配置内容。
+*请在第一次使用时在python文件中自行修改配置内容。
 若不清楚您的弯音轮或旋钮的范围，详见 “校准”。
 
-Please modify the configuration content in the file yourself during the first use.
+*Please modify the configuration content in the file yourself during the first use.
 If you are not sure about the range of your bend tone wheel or knob, 
 please refer to "Calibration" for details.
 
@@ -87,6 +87,7 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 | 65 | F4 | S |
 | 66 | F#4 | 空格（跳）|
 | 67 | G4 | 左 Shift（潜行）|
+| 69 | A4 | Z |
 | 72 | C5 | Esc |
 | 74 | D5 | E（背包）|
 | 76 | E5 | F5（切换人称）|
@@ -192,6 +193,7 @@ Press `Ctrl+C` to quit. Focus the game window before playing.
 | 65 | F4 | S |
 | 66 | F#4 | Space (jump) |
 | 67 | G4 | Left Shift (sneak) |
+| 69 | A4 | Z |
 | 72 | C5 | Esc |
 | 74 | D5 | E (inventory) |
 | 76 | E5 | F5 (perspective) |
@@ -202,7 +204,7 @@ Edit `NOTE_MAP` at the top of the script to customize.
 
 If the camera only turns one way or ranges look wrong, set `CALIBRATE_ON_START`
 to `True`, move every control through its full range when prompted, then fix the
-centers/CC numbers from the printed ranges. For live values:
+centers/CC numbers from the configuration area. For live values:
 `python EZMidiGamer.py --debug`.
 
 ### Common problems

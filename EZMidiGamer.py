@@ -131,6 +131,7 @@ NOTE_MAP = {
     65: ("key", "s"),            # F4  -> S
     66: ("key", KKey.space),     # F#4 -> Space (jump)
     67: ("key", KKey.shift),     # G4  -> Left Shift (sneak)
+    69: ("key", 'Z'),            # A4  -> Z
     72: ("key", KKey.esc),       # C5  -> Esc
     74: ("key", "e"),            # D5  -> E
     76: ("key", KKey.f5),        # E5  -> F5 (toggle perspective)
