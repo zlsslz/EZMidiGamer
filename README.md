@@ -58,7 +58,7 @@ MIDI 控制器 ──MIDI 消息──> 轮询主循环 ──> 模拟鼠标/键
 ### 安装
 
 ```bash
-git clone https://github.com/<your-username>/EZMidiGamer.git
+git clone https://github.com/zlsslz/EZMidiGamer.git
 cd EZMidiGamer
 python -m pip install -r requirements.txt
 python EZMidiGamer.py --list      # 确认能识别控制器
@@ -161,7 +161,7 @@ state every `POLL_INTERVAL` seconds and
 ### Install
 
 ```bash
-git clone https://github.com/<your-username>/EZMidiGamer.git
+git clone https://github.com/zlsslz/EZMidiGamer.git
 cd EZMidiGamer
 python -m pip install -r requirements.txt
 python EZMidiGamer.py --list
