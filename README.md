@@ -105,6 +105,8 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 - **弯音轮旋转错误**：将 CALIBRATE_ON_START 更改为 'True' ，
   运行校准以修正中心值。随后可以根据获得的数据自行写进配置区。
 - **鼠标移动过快/过慢**：在配置区中调整相应的`*_VEL`或`*_DISP`增益。
+- **因MIDI设备范围过窄导致无法触发动作**：
+  点击MIDI设备上的 OCT+ 或 OCT- 按钮，确保MIDI设备内包括C4~C6，或者自行更改配置脚本。
 - **macOS**：在“辅助功能与输入监视”下允许终端/Python。
 - **Linux**：Wayland可能会阻止模拟输入；请使用X11。
 
@@ -212,6 +214,10 @@ centers/CC numbers from the printed ranges. For live values:
   you can manually enter the obtained data into the configuration area.
 - **Mouse movement too fast/too slow**: 
   Adjust the corresponding `*_VEL` or `*_DISP` gains in the configuration area.
+- **Failure to trigger actions due to the narrow range of MIDI devices**:
+ Click the OCT+ or OCT- button on the MIDI device
+ to ensure that C4~C6 is included in the MIDI device, 
+ or modify the configuration script yourself.
 - **macOS**: Enable Terminal/Python under "Accessibility & Input Monitoring".
 - **Linux**: Wayland may prevent simulated input; please use X11.
 
