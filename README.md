@@ -35,6 +35,7 @@ please refer to "Calibration" for details.
 - 琴键自定义映射：移动、跳跃、潜行、背包、切换人称、鼠标左右键等
 - 固定频率轮询
 - 不更改游戏文件
+- 由 Python 编写，原理简单，可快速修改配置
 
 ### 工作原理
 
@@ -137,6 +138,7 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 - Custom note mapping: movement, jump, sneak, inventory, perspective toggle, mouse buttons
 - Fixed-rate polling
 - Does not modify game files; equivalent to using a gamepad/joystick
+- Written in Python with simple principle, allowing for quick modification of configurations
 
 ### How it works
 

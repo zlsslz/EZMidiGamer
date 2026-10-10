@@ -354,7 +354,7 @@ def main():
     if args.list:
         names = mido.get_input_names()
         if not names:
-            print("[!] No MIDI device found.")
+            print("[!] No MIDI device found.  没有找到 MIDI 设备。")
             return 1
         for i, name in enumerate(names):
             print(f"[{i}] {name}")
@@ -364,14 +364,14 @@ def main():
     if port_name is None:
         return 1
 
-    print(f"\n[>] Connected: {port_name}  | source: {source}  | mode: {move_mode}")
+    print(f"\n[>] Connected: {port_name}  | source: {source}  | mode: {move_mode}\n[>] 连接设备: {port_name}  | 输入: {source}  | 模式: {move_mode}")
     mapper = Mapper(source, move_mode, args.debug)
 
     try:
         with mido.open_input(port_name) as port:
             if CALIBRATE_ON_START and not args.no_calibrate:
                 calibrate(port)
-            print("[>] Running. Press Ctrl+C to quit.\n")
+            print("[>] Running. Press Ctrl+C to quit.  运行中。按下 Ctrl+C 退出。\n")
             last = time.time()
             while True:
                 # Non-blocking drain of every message received this tick
@@ -382,7 +382,7 @@ def main():
                 last = now
                 time.sleep(POLL_INTERVAL)
     except KeyboardInterrupt:
-        print("\n[#] Quit.")
+        print("\n[#] Quit.  已退出。")
     finally:
         for note in list(mapper.held):
             mapper.note_up(note)
