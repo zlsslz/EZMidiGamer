@@ -41,8 +41,9 @@ Originally built for Minilab3 in Minecraft Java Edition.
         62 D4  -> W            63 D#4 -> 鼠标右键 / mouse right
         64 E4  -> D            65 F4  -> S
         66 F#4 -> 空格(跳)     67 G4  -> 左 Shift(潜行)
+        69 A4  -> Z           
         72 C5  -> Esc          74 D5  -> E
-        76 E5  -> F5(切换人称视角 / toggle perspective)
+        76 E5  -> F5(切换人称视角 / perspective)
 
 -运行方法 / How to run：
     安装 / Install:  python -m pip install -r requirements.txt
