@@ -48,6 +48,10 @@ Originally built for Minilab3 in Minecraft Java Edition.
         75 D#5  -> 滚轮下 / Scroll down
         76 E5  -> F5(切换人称视角 / perspective)
 
+    可选配置 / Optional setting:
+    MIDI_DEVICE_NAME — 填写MIDI设备名称关键字，程序会优先连接名称包含该字符串的设备；
+                    留空则自动选择。 / optional device name keyword; empty = auto select
+
 -运行方法 / How to run：
     安装 / Install:  python -m pip install -r requirements.txt
         (python -m pip install mido pygame pynput)
@@ -74,20 +78,25 @@ from pynput.keyboard import Controller as Keyboard, Key as KKey
 
 
 # ============================ Configuration 配置区 ============================
-# Camera input source: 'wheel' | 'knob' | 'both' (override with --source)
+# Camera input source 输入方式 : 'wheel' | 'knob' | 'both' (override with --source)
 VIEW_SOURCE = "both"
-# Camera move mode: 'velocity' | 'displacement' (override with --move)
+# Camera move mode 移动模式 : 'velocity' | 'displacement' (override with --move)
 MOVE_MODE = "velocity"
 
-# Main loop poll interval in seconds. Smaller value is smoother, slightly more CPU.
+# Main loop poll interval in seconds.  主循环间隔
 # Common values: 0.02 / 0.05 / 0.2 
 POLL_INTERVAL = 0.02
 
-# Run the range calibration on startup (defaults are hard-coded; set True to
-# re-detect and print the actual ranges of your device).
+# Run the range calibration on startup 开始时校准
+# defaults are hard-coded; set True to re-detect and print the actual ranges. 
 CALIBRATE_ON_START = False
 
-# ---- Wheels: centers and dead zones ----
+# ---- MIDI device selection  MIDI设备选择 ----  
+# Optional device name keyword: if set, program will select the first port whose
+# name contains this string (case-insensitive); or falls back to automatic.
+MIDI_DEVICE_NAME = "123"
+
+# ---- Wheels: centers and dead zones  滑轮中心和死区 ---- 
 # This device reports signed pitch-bend in -8192..8191 (center 0) and the
 # modulation wheel in 0..127 (center 63). Re-run calibration if yours differs.
 PITCH_CENTER = 0
@@ -95,42 +104,45 @@ MOD_CENTER = 63
 PITCH_DEADZONE = 512
 MOD_DEADZONE = 16
 
-# ---- Knobs: CC numbers, velocity center and dead zone ----
+# ---- Knobs: CC numbers, center and dead zone  旋钮：CC号，中心和死区----  
 KNOB_X_CC = 74
 KNOB_Y_CC = 71
 KNOB_VEL_CENTER = 64     # knob position meaning "zero speed"
 KNOB_DEADZONE = 8        # knob velocity dead zone
 
-# ---- Velocity gains: pixels/second per single unit off-center ----
+# ---- Velocity gains: pixels/second  速度模式灵敏度：单元每秒  ----
 PITCH_VEL = 0.15
 MOD_VEL = 10.0
 KNOB_X_VEL = 6.0
 KNOB_Y_VEL = 6.0
 
-# ---- Displacement gains: pixels per single unit of change ----
+# ---- Displacement gains: pixels  位移模式灵敏度：单元----
 PITCH_DISP = 0.003
 MOD_DISP = 1.8
 KNOB_X_DISP = 12.0
 KNOB_Y_DISP = 12.0
 
-# Maximum pixels moved per single tick (guards against sudden flings)
+# Maximum pixels moved per single tick  每tick最大移动像素
+# Guards against sudden flings
 MAX_MOVE = 300
 
 # Decide how much distance(notch) to move when the wheel scrolled
 # Not related to switch items in the games like Minecraft
+# 设定每次滚轮操作移动距离，与某些游戏的切换物品功能能（如MC）无关
 SCROLL_AMOUNT = 5
 
-# Direction inversion
+# Direction inversion  方向反向
 PITCH_INVERT = False
 MOD_INVERT = True
 KNOB_INVERT_X = False
 KNOB_INVERT_Y = True
 
 # Note mapping: MIDI note number -> (kind, value)
+# 按键映射：MIDI按键编号 -> （按键种类，按键名称）
 #   kind 'key'  : a keyboard key (a character, or a pynput Key such as KKey.esc)
 #   kind 'mouse': 'left' / 'right' / 'middle' mouse button
 #   kind 'scroll': 'up' / 'down' to scroll
-# Example: 60: ("key", "a")
+# Example 示例 : 60: ("key", "a")
 # C3=48, C4=60, C5=72, C6=84
 NOTE_MAP = {
     60: ("key", "a"),            # C4  -> A
@@ -149,8 +161,8 @@ NOTE_MAP = {
     76: ("key", KKey.f5),        # E5  -> F5
 }
 
-# Press this key to quit this program. Default: 84(C6)
-QUIT_NOTE = 84
+# Press which key to quit this program  按下此键退出程序 
+QUIT_NOTE = 84  # Default: 84(C6)
 
 # ========================================================================
 
@@ -174,38 +186,58 @@ def parse_args():
 
 
 def find_port(wanted):
-    """Return the MIDI input port name, preferring a MiniLab device."""
+    """Return the MIDI input port name, preferring the configured device name."""
     names = mido.get_input_names()
     if not names:
-        print("[!] No MIDI input device found. Make sure the controller is "
-              "connected over USB and powered on.\n     没有找到MIDI设备。请确保您的设备已连接。")
+        print("[EZMG] Error: No MIDI input device found. Make sure the controller is "
+              "connected over USB and powered on.\n[EZMG] 错误: 没有找到MIDI设备。请确保您的设备已连接。")
         return None
 
-    idx = next((i for i, n in enumerate(names) if "minilab" in n.lower()), None)
+    idx = None
 
+    # --port
     if wanted is not None:
         if 0 <= wanted < len(names):
             idx = wanted
         else:
-            print(f"[!] Invalid port index {wanted}; there are {len(names)} ports.")
+            print(f"[EZMG] Error: Invalid port index {wanted}; there are {len(names)} ports. \n[EZMG] 错误: 无效的设备名称。")
             return None
+    else:
+        # 匹配关键字
+        if MIDI_DEVICE_NAME:
+            idx = next((i for i, n in enumerate(names)
+                        if MIDI_DEVICE_NAME.lower() in n.lower()), None)
+            if idx is not None:
+                print(f"[EZMG] Matched configured device name '{MIDI_DEVICE_NAME}': "
+                      f"{names[idx]}\n"
+                      f"[EZMG] 已按配置的设备名称 '{MIDI_DEVICE_NAME}' 匹配：{names[idx]}")
+        # minilab自动匹配（old version）
+#        if idx is None:
+#            idx = next((i for i, n in enumerate(names) if "minilab" in n.lower()), None)
+#            if idx is not None and MIDI_DEVICE_NAME:
+#                print(f"[?] Device name '{MIDI_DEVICE_NAME}' not found; falling back to "
+#                      f"match: {names[idx]}\n"
+#                      f"[?] 未找到 '{MIDI_DEVICE_NAME}'，回退到匹配：{names[idx]}")
 
-    print("Available MIDI input ports:  可用MIDI端口：")
+    if idx is None and MIDI_DEVICE_NAME:
+        print(f"[EZMG] Error: Device name is not found  错误：未找到设备  '{MIDI_DEVICE_NAME}'")
+    
+    if idx is None:
+        idx = 0
+        print(f"[EZMG] Defaulting to:  已自动设置： [{idx+1}] {names[idx]}")
+
+    print("[EZMG] Available MIDI input ports:  可用MIDI端口：")
     for i, name in enumerate(names):
         marker = "  <-- selected 当前选择" if i == idx else ""
         print(f"  [{i+1}] {name}{marker}")
-
-    if idx is None:
-        idx = 0
-        print(f"[?] Defaulting to: 设置为： [{idx}] {names[idx]}")
+    
     return names[idx]
 
-
-def calibrate(port, seconds=10.0):
+def calibrate(port, seconds=10.0):   #校准
     """Print the observed ranges of the wheels and knobs to verify defaults."""
-    print(f"[#] Calibrating for {seconds:.0f}s: move the pitch/mod wheels fully and "
+    print(f"[EZMG] Calibrating for {seconds:.0f}s: move the pitch/mod wheels fully and "
           "turn both knobs through their full range...\n"
-          "[#] 校准中，时长10秒：请完整移动pitch/mod轮，并将两个旋钮都旋转至其最大范围……")
+          "[EZMG] 校准中，时长10秒：请完整移动pitch/mod轮，并将两个旋钮都旋转至其最大范围……")
     pitches, mods, cc_ranges = [], [], {}
     deadline = time.time() + seconds
 
@@ -225,11 +257,11 @@ def calibrate(port, seconds=10.0):
             time.sleep(0.01)  # 空转保护
 
     if pitches:
-        print(f"[#] Pitch range {min(pitches)}..{max(pitches)}")
+        print(f"[EZMG] Pitch range {min(pitches)}..{max(pitches)}")
     if mods:
-        print(f"[#] Mod range {min(mods)}..{max(mods)}")
+        print(f"[EZMG] Mod range {min(mods)}..{max(mods)}")
     for cc, (lo, hi) in sorted(cc_ranges.items()):
-        print(f"[#] Activated CC{cc} , range {lo}..{hi}")
+        print(f"[EZMG] Activated CC{cc} , range {lo}..{hi}")
 
 
 class Mapper:
@@ -371,7 +403,7 @@ class Mapper:
 
 
 def main():
-    print("[#] 欢迎使用EZMidiGamer。 Welcome to use EZMidiGamer. \n[#] https://github.com/zlsslz/EZMidiGamer")
+    print("[EZMG] 欢迎使用EZMidiGamer。 Welcome to use EZMidiGamer. \n[EZMG] https://github.com/zlsslz/EZMidiGamer")
     args = parse_args()
     source = args.source or VIEW_SOURCE
     move_mode = args.move or MOVE_MODE
@@ -379,7 +411,7 @@ def main():
     if args.list:
         names = mido.get_input_names()
         if not names:
-            print("[!] No MIDI device found.  没有找到 MIDI 设备。")
+            print("[EZMG] Error: No MIDI device found.  错误：没有找到 MIDI 设备。")
             return 1
         for i, name in enumerate(names):
             print(f"[{i}] {name}")
@@ -389,14 +421,14 @@ def main():
     if port_name is None:
         return 1
 
-    print(f"\n[>] Connected 连接设备: {port_name}  | source 输入: {source}  | mode 模式: {move_mode}")
+    print(f"\n[EZMG] Connected 连接设备: {port_name}  | source 输入: {source}  | mode 模式: {move_mode}")
     mapper = Mapper(source, move_mode, args.debug)
 
     try:
         with mido.open_input(port_name) as port:
             if CALIBRATE_ON_START and not args.no_calibrate:
                 calibrate(port)
-            print(f"[>] Running. Press Ctrl+C or {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n")
+            print(f"[EZMG] Running. Press Ctrl+C or {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n")
             last = time.time()
             while True:
                 # Non-blocking drain of every message received this tick
@@ -409,7 +441,7 @@ def main():
                 last = now
                 time.sleep(POLL_INTERVAL)
     except KeyboardInterrupt:
-        print("\n[#] Quit.  已退出。")
+        print("\n[EZMG] Quit.  已退出。")
     finally:
         for note in list(mapper.held):
             mapper.note_up(note)
