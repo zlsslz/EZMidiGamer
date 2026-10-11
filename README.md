@@ -1,27 +1,21 @@
 # EZMidiGamer
-
-**[中文](#中文) | [English](#english)**
+https://github.com/zlsslz/EZMidiGamer
 
 简单地把任意 MIDI 控制器变成系统鼠标 / 键盘输入，
 从而用琴键、弯音轮、旋钮来操作任意游戏。
-默认参数针对 MiniLab 3，最初用于 Minecraft Java 版。
 
 Simply turn any MIDI controller into system mouse/keyboard input, 
 so you can play any game with keys, wheels and knobs.
-Originally built for Minilab3 in Minecraft Java Edition.
-
-
-*请在第一次使用时在python文件中自行修改配置内容。
-若不清楚您的弯音轮或旋钮的范围，详见 “校准”。
-
-*Please modify the configuration content in the file yourself during the first use.
-If you are not sure about the range of your bend tone wheel or knob, 
-please refer to "Calibration" for details.
 
 ---
 
+**[中文](#中文) | [English](#english)**
+
 <a name="中文"></a>
 ## 中文
+
+*请在第一次使用时在python文件中自行修改配置内容。
+若不清楚您的弯音轮或旋钮的范围，详见 “校准”。*
 
 ### 功能特性
 
@@ -86,18 +80,21 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 | 64 | E4 | D |
 | 65 | F4 | S |
 | 66 | F#4 | 空格（跳）|
-| 67 | G4 | 左 Shift（潜行）|
+| 67 | G4 | Shift（潜行）|
 | 69 | A4 | Z |
 | 72 | C5 | Esc |
+| 73 | C#5 | 鼠标滚轮上 |
 | 74 | D5 | E（背包）|
+| 75 | D#5 | 鼠标滚轮下 |
 | 76 | E5 | F5（切换人称）|
-
+| 84 | C6 | 退出程序 |
 修改脚本顶部 `NOTE_MAP` 即可自定义。
+“退出程序” 的按键映射需要单独修改 QUIT_NOTE 。
 
 ### 校准
 
 若视角只往一个方向转或范围不对，把 `CALIBRATE_ON_START` 改为 `True` 运行，
-按提示把弯音轮、Mod 轮推到底、旋钮转到底，根据打印范围修正中心值与 CC 号。
+按提示把用于操控的弯音轮、Mod 轮推到底、旋钮转到底，根据打印范围修正中心值与 CC 号。
 实时查看原始值：`python EZMidiGamer.py --debug`。
 
 ### 常见问题
@@ -113,12 +110,12 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 
 ### 免责声明
 
-本工具仅在操作系统层面重映射输入，不含自动瞄准、宏或任何作弊逻辑。
-是否可在多人服务器使用由该服务器规则决定，
-若因为使用本项目内容导致被服务器处罚/封禁等，使用者自行承担责任。
-本项目仅供娱乐 / 学习。
-本项目测试范围有限，可能会出现大量问题。
-本项目部分内容由人工智能辅助创建。
+- 本工具仅在操作系统层面重映射输入，不含自动瞄准、宏或任何作弊逻辑。
+- 是否可在多人服务器使用由该服务器规则决定，
+- 若因为使用本项目内容导致被服务器处罚/封禁等，使用者自行承担责任。
+- 本项目仅供娱乐 / 学习。
+- 本项目测试范围有限，可能会出现大量问题。默认参数针对 MiniLab 3，最初用于 Minecraft Java 版。
+- 本项目部分内容由人工智能辅助创建。
 
 ### 开源协议
 
@@ -128,6 +125,10 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 
 <a name="english"></a>
 ## English
+
+*Please modify the configuration content in the file yourself during the first use.
+If you are not sure about the range of your bend tone wheel or knob, 
+please refer to "Calibration" for details.*
 
 ### Features
 
@@ -192,13 +193,17 @@ Press `Ctrl+C` to quit. Focus the game window before playing.
 | 64 | E4 | D |
 | 65 | F4 | S |
 | 66 | F#4 | Space (jump) |
-| 67 | G4 | Left Shift (sneak) |
+| 67 | G4 | Shift (sneak) |
 | 69 | A4 | Z |
 | 72 | C5 | Esc |
-| 74 | D5 | E (inventory) |
-| 76 | E5 | F5 (perspective) |
+| 73 | C#5 | Scroll up |
+| 74 | D5 | E |
+| 75 | D#5 | Scrool down |
+| 76 | E5 | F5 (toggle perspective) |
+| 84 | C6 | Quit Program |
 
 Edit `NOTE_MAP` at the top of the script to customize.
+The note map of Quit Program function needs to set QUIT_NOTE separately.
 
 ### Calibration
 
@@ -217,21 +222,22 @@ centers/CC numbers from the configuration area. For live values:
 - **Mouse movement too fast/too slow**: 
   Adjust the corresponding `*_VEL` or `*_DISP` gains in the configuration area.
 - **Failure to trigger actions due to the narrow range of MIDI devices**:
- Click the OCT+ or OCT- button on the MIDI device
- to ensure that C4~C6 is included in the MIDI device, 
- or modify the configuration script yourself.
+  Click the OCT+ or OCT- button on the MIDI device
+  to ensure that C4~C6 is included in the MIDI device, 
+  or modify the configuration script yourself.
 - **macOS**: Enable Terminal/Python under "Accessibility & Input Monitoring".
 - **Linux**: Wayland may prevent simulated input; please use X11.
 
 ### Disclaimer
 
-This tool only remaps input at the OS level and contains no aim assist, 
-macros or cheating logic. 
-Whether it is allowed on multiplayer servers is governed by those servers' rules; 
-If the user is punished/blocked by the server due to the use of the this project, 
-the user shall bear the responsibility on their own.
-The testing scope of this project is limited, a large number of issues may arise.
-AI assisted in this project.
+- This tool only remaps input at the OS level and contains no aim assist, 
+  macros or cheating logic. 
+- Whether it is allowed on multiplayer servers is governed by those servers' rules; 
+- If the user is punished/blocked by the server due to the use of the this project, 
+  the user shall bear the responsibility on their own.
+- The testing scope of this project is limited, a large number of issues may arise.
+  Originally built for Minilab3 in Minecraft Java Edition.
+- AI assisted in this project.
 
 ### License
 

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """
 EZMidiGamer v1
+https://github.com/zlsslz/EZMidiGamer
 ==========
 简单地把任意 MIDI 控制器变成系统鼠标 / 键盘输入，
 从而用琴键、弯音轮、旋钮来操作任意游戏。
@@ -36,13 +37,15 @@ Originally built for Minilab3 in Minecraft Java Edition.
     Both modes stop on release and restart on the next input. A fixed-rate poll loop
     (POLL_INTERVAL) fixes the "holding the control still does nothing" limitation.
 
-    默认音符映射(按下=按住, 松开=释放) / Default note mapping:
+    默认音符映射 / Default note mapping:
         60 C4  -> A            61 C#4 -> 鼠标左键 / mouse left
         62 D4  -> W            63 D#4 -> 鼠标右键 / mouse right
         64 E4  -> D            65 F4  -> S
-        66 F#4 -> 空格(跳)     67 G4  -> 左 Shift(潜行)
+        66 F#4 -> 空格 / space  67 G4  -> Shift
         69 A4  -> Z           
         72 C5  -> Esc          74 D5  -> E
+        73 C#5  -> 滚轮上 / Scroll up          
+        75 D#5  -> 滚轮下 / Scroll down
         76 E5  -> F5(切换人称视角 / perspective)
 
 -运行方法 / How to run：
@@ -85,12 +88,12 @@ POLL_INTERVAL = 0.02
 CALIBRATE_ON_START = False
 
 # ---- Wheels: centers and dead zones ----
-# This device reports signed pitch-bend in -8192..8191 (center 0) and the
+# This device reports signed ppython Z:\zlsslz_code\py\midimc\EZMidiGamer.pyitch-bend in -8192..8191 (center 0) and the
 # modulation wheel in 0..127 (center 63). Re-run calibration if yours differs.
 PITCH_CENTER = 0
 MOD_CENTER = 63
 PITCH_DEADZONE = 512
-MOD_DEADZONE = 8
+MOD_DEADZONE = 16
 
 # ---- Knobs: CC numbers, velocity center and dead zone ----
 KNOB_X_CC = 74
@@ -113,6 +116,10 @@ KNOB_Y_DISP = 12.0
 # Maximum pixels moved per single tick (guards against sudden flings)
 MAX_MOVE = 300
 
+# Decide how much distance(notch) to move when the wheel scrolled
+# Not related to switch items in the games like Minecraft
+SCROLL_AMOUNT = 5
+
 # Direction inversion
 PITCH_INVERT = False
 MOD_INVERT = True
@@ -122,7 +129,9 @@ KNOB_INVERT_Y = True
 # Note mapping: MIDI note number -> (kind, value)
 #   kind 'key'  : a keyboard key (a character, or a pynput Key such as KKey.esc)
 #   kind 'mouse': 'left' / 'right' / 'middle' mouse button
+#   kind 'scroll': 'up' / 'down' to scroll
 # Example: 60: ("key", "a")
+# C4=60, C5=72, C6=84
 NOTE_MAP = {
     60: ("key", "a"),            # C4  -> A
     61: ("mouse", "left"),       # C#4 -> mouse left
@@ -130,13 +139,19 @@ NOTE_MAP = {
     63: ("mouse", "right"),      # D#4 -> mouse right
     64: ("key", "d"),            # E4  -> D
     65: ("key", "s"),            # F4  -> S
-    66: ("key", KKey.space),     # F#4 -> Space (jump)
-    67: ("key", KKey.shift),     # G4  -> Left Shift (sneak)
-    69: ("key", 'Z'),            # A4  -> Z
+    66: ("key", KKey.space),     # F#4 -> Space
+    67: ("key", KKey.shift),     # G4  -> Shift
+    69: ("key", 'z'),            # A4  -> Z
     72: ("key", KKey.esc),       # C5  -> Esc
+    73: ("scroll", "up"),        # C#5 -> Scroll Up
     74: ("key", "e"),            # D5  -> E
-    76: ("key", KKey.f5),        # E5  -> F5 (toggle perspective)
+    75: ("scroll", "down"),      # D#5 -> Scroll Down
+    76: ("key", KKey.f5),        # E5  -> F5
 }
+
+# Press this key to quit this program. Default: 84(C6)
+QUIT_NOTE = 84
+
 # ========================================================================
 
 
@@ -163,7 +178,7 @@ def find_port(wanted):
     names = mido.get_input_names()
     if not names:
         print("[!] No MIDI input device found. Make sure the controller is "
-              "connected over USB and powered on.")
+              "connected over USB and powered on.\n     没有找到MIDI设备。请确保您的设备已连接。")
         return None
 
     idx = next((i for i, n in enumerate(names) if "minilab" in n.lower()), None)
@@ -175,21 +190,22 @@ def find_port(wanted):
             print(f"[!] Invalid port index {wanted}; there are {len(names)} ports.")
             return None
 
-    print("Available MIDI input ports:")
+    print("Available MIDI input ports:  可用MIDI端口：")
     for i, name in enumerate(names):
-        marker = "  <-- selected" if i == idx else ""
+        marker = "  <-- selected 当前选择" if i == idx else ""
         print(f"  [{i}] {name}{marker}")
 
     if idx is None:
         idx = 0
-        print(f"[?] No MiniLab detected; defaulting to [{idx}] {names[idx]}")
+        print(f"[?] Defaulting to: 设置为： [{idx}] {names[idx]}")
     return names[idx]
 
 
 def calibrate(port, seconds=10.0):
     """Print the observed ranges of the wheels and knobs to verify defaults."""
-    print(f"[#] Calibrating for {seconds:.0f}s: move the pitch/mod wheels and "
-          "turn both knobs through their full range...")
+    print(f"[#] Calibrating for {seconds:.0f}s: move the pitch/mod wheels fully and "
+          "turn both knobs through their full range...\n"
+          "[#] 校准中，时长10秒：请完整移动pitch/mod轮，并将两个旋钮都旋转至其最大范围……")
     pitches, mods, cc_ranges = [], [], {}
     deadline = time.time() + seconds
 
@@ -206,14 +222,14 @@ def calibrate(port, seconds=10.0):
                     rng[0] = min(rng[0], msg.value)
                     rng[1] = max(rng[1], msg.value)
         else:
-            time.sleep(0.01)
+            time.sleep(0.01)  # 空转保护
 
     if pitches:
         print(f"[#] Pitch range {min(pitches)}..{max(pitches)}")
     if mods:
         print(f"[#] Mod range {min(mods)}..{max(mods)}")
     for cc, (lo, hi) in sorted(cc_ranges.items()):
-        print(f"[#] CC{cc} range {lo}..{hi}")
+        print(f"[#] Activated CC{cc} , range {lo}..{hi}")
 
 
 class Mapper:
@@ -242,16 +258,22 @@ class Mapper:
         if dx or dy:
             self.mouse.move(int(round(dx)), int(round(dy)))
 
-    def note_down(self, note):
+    def note_down(self, note):  # 按下音符，只有mouse和key需要self.held.add(note)
         action = NOTE_MAP.get(note)
         if not action or note in self.held:
             return
         kind, value = action
         if kind == "mouse":
             self.mouse.press(getattr(MButton, value))
-        else:
+            self.held.add(note)  
+        elif kind == "key":
             self.keyboard.press(value)
-        self.held.add(note)
+            self.held.add(note)
+        elif kind == "scroll":
+            if value == "up":
+                self.mouse.scroll(0, SCROLL_AMOUNT)   # 向上
+            elif value == "down":
+                self.mouse.scroll(0, -SCROLL_AMOUNT)  # 向下
 
     def note_up(self, note):
         action = NOTE_MAP.get(note)
@@ -260,7 +282,7 @@ class Mapper:
         kind, value = action
         if kind == "mouse":
             self.mouse.release(getattr(MButton, value))
-        else:
+        if kind == "key":
             self.keyboard.release(value)
         self.held.discard(note)
 
@@ -366,18 +388,20 @@ def main():
     if port_name is None:
         return 1
 
-    print(f"\n[>] Connected: {port_name}  | source: {source}  | mode: {move_mode}\n[>] 连接设备: {port_name}  | 输入: {source}  | 模式: {move_mode}")
+    print(f"\n[>] Connected  连接设备: {port_name}  | source  输入: {source}  | mode  模式: {move_mode}")
     mapper = Mapper(source, move_mode, args.debug)
 
     try:
         with mido.open_input(port_name) as port:
             if CALIBRATE_ON_START and not args.no_calibrate:
                 calibrate(port)
-            print("[>] Running. Press Ctrl+C to quit.  运行中。按下 Ctrl+C 退出。\n")
+            print(f"[>] Running. Press Ctrl+C or press {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n")
             last = time.time()
             while True:
                 # Non-blocking drain of every message received this tick
                 for msg in port.iter_pending():
+                    if msg.type == "note_on" and msg.velocity > 0 and msg.note == QUIT_NOTE:
+                        raise KeyboardInterrupt
                     mapper.handle(msg)
                 now = time.time()
                 mapper.tick(now - last)
