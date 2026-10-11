@@ -38,7 +38,7 @@ MIDI 控制器 ──MIDI 消息──> 轮询主循环 ──> 模拟鼠标/键
 ```
 
 脚本通过 [mido](https://github.com/mido/mido) 读取 MIDI 消息，每隔
-`POLL_INTERVAL` 秒轮询一次控件状态，再通过
+`POLL_INTERVAL` （0.02）秒轮询一次控件状态，再通过
 [pynput](https://github.com/moses-palmer/pynput) 模拟鼠标 / 键盘输入。
 
 ### 环境要求
@@ -88,8 +88,9 @@ python EZMidiGamer.py --source both                     # 转轮与旋钮同时�
 | 75 | D#5 | 鼠标滚轮下 |
 | 76 | E5 | F5（切换人称）|
 | 84 | C6 | 退出程序 |
+
 修改脚本顶部 `NOTE_MAP` 即可自定义。
-“退出程序” 的按键映射需要单独修改 QUIT_NOTE 。
+“退出程序” 的按键映射需要单独修改 `QUIT_NOTE` 。
 
 ### 校准
 
@@ -151,7 +152,7 @@ MIDI controller ──MIDI messages──> poll loop ──> simulated mouse/key
 ```
 
 [mido](https://github.com/mido/mido) reads MIDI messages; the loop polls control
-state every `POLL_INTERVAL` seconds and
+state every `POLL_INTERVAL` (0.02)seconds and
 [pynput](https://github.com/moses-palmer/pynput) simulates mouse/keyboard input.
 
 ### Requirements
@@ -203,7 +204,7 @@ Press `Ctrl+C` to quit. Focus the game window before playing.
 | 84 | C6 | Quit Program |
 
 Edit `NOTE_MAP` at the top of the script to customize.
-The note map of Quit Program function needs to set QUIT_NOTE separately.
+The note map of Quit Program function needs to set `QUIT_NOTE` separately.
 
 ### Calibration
 

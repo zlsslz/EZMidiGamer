@@ -131,7 +131,7 @@ KNOB_INVERT_Y = True
 #   kind 'mouse': 'left' / 'right' / 'middle' mouse button
 #   kind 'scroll': 'up' / 'down' to scroll
 # Example: 60: ("key", "a")
-# C4=60, C5=72, C6=84
+# C3=48, C4=60, C5=72, C6=84
 NOTE_MAP = {
     60: ("key", "a"),            # C4  -> A
     61: ("mouse", "left"),       # C#4 -> mouse left
