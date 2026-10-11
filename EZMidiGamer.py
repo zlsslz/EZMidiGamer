@@ -193,7 +193,7 @@ def find_port(wanted):
     print("Available MIDI input ports:  可用MIDI端口：")
     for i, name in enumerate(names):
         marker = "  <-- selected 当前选择" if i == idx else ""
-        print(f"  [{i}] {name}{marker}")
+        print(f"  [{i+1}] {name}{marker}")
 
     if idx is None:
         idx = 0
@@ -371,6 +371,7 @@ class Mapper:
 
 
 def main():
+    print("[#] 欢迎使用EZMidiGamer。 Welcome to use EZMidiGamer. \n[#] https://github.com/zlsslz/EZMidiGamer")
     args = parse_args()
     source = args.source or VIEW_SOURCE
     move_mode = args.move or MOVE_MODE
@@ -388,15 +389,14 @@ def main():
     if port_name is None:
         return 1
 
-    print(f"\n[>] Connected  连接设备: {port_name}  | source  输入: {source}  | mode  模式: {move_mode}")
+    print(f"\n[>] Connected 连接设备: {port_name}  | source 输入: {source}  | mode 模式: {move_mode}")
     mapper = Mapper(source, move_mode, args.debug)
 
     try:
         with mido.open_input(port_name) as port:
             if CALIBRATE_ON_START and not args.no_calibrate:
                 calibrate(port)
-            print(f"[>] Running. Press Ctrl+C or press {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n"
-                  "[#] https://github.com/zlsslz/EZMidiGamer")
+            print(f"[>] Running. Press Ctrl+C or {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n")
             last = time.time()
             while True:
                 # Non-blocking drain of every message received this tick
