@@ -4,8 +4,7 @@
 Simply turn any MIDI controller into system mouse/keyboard input, 
 so you can play any game with piano keys, wheels and knobs.
 
-## [简体中文](#简体中文) | [English](#english)
----
+## 语言选择：[简体中文](#简体中文) | Lang: [English](#english)
 
 ## 简体中文
 
