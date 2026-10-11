@@ -88,7 +88,7 @@ POLL_INTERVAL = 0.02
 CALIBRATE_ON_START = False
 
 # ---- Wheels: centers and dead zones ----
-# This device reports signed ppython Z:\zlsslz_code\py\midimc\EZMidiGamer.pyitch-bend in -8192..8191 (center 0) and the
+# This device reports signed pitch-bend in -8192..8191 (center 0) and the
 # modulation wheel in 0..127 (center 63). Re-run calibration if yours differs.
 PITCH_CENTER = 0
 MOD_CENTER = 63
@@ -395,7 +395,8 @@ def main():
         with mido.open_input(port_name) as port:
             if CALIBRATE_ON_START and not args.no_calibrate:
                 calibrate(port)
-            print(f"[>] Running. Press Ctrl+C or press {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n")
+            print(f"[>] Running. Press Ctrl+C or press {QUIT_NOTE} to quit.  运行中。按下 Ctrl+C 或 {QUIT_NOTE} 退出。\n"
+                  "[#] https://github.com/zlsslz/EZMidiGamer")
             last = time.time()
             while True:
                 # Non-blocking drain of every message received this tick
