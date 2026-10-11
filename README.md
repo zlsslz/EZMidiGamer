@@ -1,26 +1,24 @@
-# EZMidiGamer by zlsslz
+# EZMidiGamer
 
 [https://github.com/zlsslz/EZMidiGamer](https://github.com/zlsslz/EZMidiGamer)
+Simply turn any MIDI controller into system mouse/keyboard input, 
+so you can play any game with piano keys, wheels and knobs.
 
-简单地把任意 MIDI 控制器变成系统鼠标 / 键盘输入，从而用琴键、弯音轮、旋钮来操作任意游戏。
-
-Simply turn any MIDI controller into system mouse/keyboard input, so you can play any game with keys, wheels and knobs.
-
+## [简体中文](#简体中文) | [English](#english)
 ---
 
-[中文](#中文) | [English](#english)
+## 简体中文
 
-## 中文
+EZMidiGamer可以简单地把任意 MIDI 控制器变成系统鼠标 / 键盘输入，从而用琴键、弯音轮、旋钮来操作任意游戏。
 
-*请在第一次使用时在 python 文件中自行修改配置内容。*
-
+*请在第一次使用时在 python 文件头部自行修改配置内容。*
 *若不清楚您的弯音轮或旋钮的范围，详见 “校准”。*
 
 ### 功能特性
 
 * **视角输入来源（VIEW_SOURCE）**
   * `wheel`：弯音轮控制左右，Mod 轮控制上下
-  * `knob`：两个旋钮分别控制左右 / 上下（默认 CC74 / CC71）
+  * `knob`：两个旋钮分别控制左右 / 上下
   * `both`：转轮与旋钮同时生效，移动量叠加
 * **视角移动方式（MOVE_MODE）**
   * `velocity`（速度）：控件偏离中心的量 = 转动速度，推住持续转、松手即停
@@ -65,17 +63,13 @@ python EZMidiGamer.py --source knob  --move displacement
 python EZMidiGamer.py --source both                     # 转轮与旋钮同时生效
 ```
 
-`Ctrl+C` 退出。进游戏前先把窗口焦点切到游戏。
+`Ctrl+C` 或 C6 键退出。进游戏前先把窗口焦点切到游戏。
 
 ### 设备选择
 
 在配置区设置 `MIDI_DEVICE_NAME` 指定设备名称关键字，
 程序会优先连接名称包含该字符串的 MIDI 设备（不区分大小写）；
 若未找到或留空，则自动选择（默认第一个端口）。
-
-```python
-MIDI_DEVICE_NAME = "MiniLab"   # 例
-```
 
 可用 `python EZMidiGamer.py --list` 查看实际设备名称。
 
@@ -107,7 +101,7 @@ MIDI_DEVICE_NAME = "MiniLab"   # 例
 
 若视角只往一个方向转或范围不对，把 `CALIBRATE_ON_START` 改为 `True` 运行，
 按提示把用于操控的弯音轮、Mod 轮推到底、旋钮转到底，根据打印范围修正中心值与 CC 号。
-
+可以在配置区修改灵敏度，死区等数值。
 实时查看原始值：`python EZMidiGamer.py --debug`。
 
 ### 常见问题
@@ -137,15 +131,17 @@ MIDI_DEVICE_NAME = "MiniLab"   # 例
 
 ## English
 
-*Please modify the configuration in the Python file yourself during the first use.*
+This program can simply turn any MIDI controller into system mouse/keyboard input, 
+so you can play any game with piano keys, wheels and knobs.
 
+*Please modify the configuration area in the Python file yourself during the first use.*
 *If you are not sure about the range of your pitch bend wheel or knob, please refer to "Calibration" for details.*
 
 ### Features
 
 * **Camera input source (VIEW_SOURCE)**
   * `wheel`: pitch-bend wheel for left/right, mod wheel for up/down
-  * `knob`: two knobs for left/right and up/down (default CC74 / CC71)
+  * `knob`: two knobs for left/right and up/down
   * `both`: wheel and knob active at once; their motion is added
 * **Camera move mode (MOVE_MODE)**
   * `velocity`: off-center amount = rotation speed; hold to keep turning, release to stop
@@ -191,7 +187,7 @@ python EZMidiGamer.py --source knob  --move displacement
 python EZMidiGamer.py --source both
 ```
 
-Press `Ctrl+C` to quit. Focus the game window before playing.
+Press `Ctrl+C` or Key C6 to quit. Focus the game window before playing.
 
 ### Device selection
 
@@ -199,10 +195,6 @@ Set `MIDI_DEVICE_NAME` in the configuration area to specify a device name keywor
 the program will prefer the first MIDI port whose name contains that string (case-insensitive). 
 If no port matches (or it is left empty), 
 it falls back to automatic selection (the first port).
-
-```python
-MIDI_DEVICE_NAME = "MiniLab"   # e.g.
-```
 
 Run `python EZMidiGamer.py --list` to see the actual device names.
 
@@ -233,13 +225,15 @@ The quit note must be set separately via `QUIT_NOTE`.
 ### Calibration
 
 If the camera only turns one way or ranges look wrong, set `CALIBRATE_ON_START` to `True`, 
-move every control through its full range when prompted, then fix the centers/CC numbers from the printed ranges. 
+move controls you want to use through its full range when prompted, 
+then fix the centers/CC numbers from the printed ranges. 
+Then you can adjust values such as sensitivity and dead zone in the configuration area.
 For live values: `python EZMidiGamer.py --debug`.
 
 ### Common problems
 
 * **Effective in desktop environment but ineffective in games**: 
-  Please disable the "Raw Input" function in games and test in windowed mode.
+  Please disable the "Raw Input" function in games (e.g. Minecraft) and test in windowed mode.
 * **Pitch bend wheel rotation error**: Change `CALIBRATE_ON_START` to `True`, 
   run calibration to correct the center value. Subsequently, you can 
   manually enter the obtained data into the configuration area.
