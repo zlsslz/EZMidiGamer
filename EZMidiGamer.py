@@ -31,14 +31,13 @@ Originally built for Minilab3 in Minecraft Java Edition.
     若不清楚您的弯音轮或旋钮的范围，请设置：“CALIBRATE_ON_START = True”，然后运行以校准。
     请确保 “config.py” 与主程序在同一文件夹内。
 """
+VERSION = 1.1
 
 import argparse
 import os
 import sys
 import time
 
-# Prefer mido's Pygame backend on Windows: it ships pre-built wheels and does
-# not require python-rtmidi or a C compiler. Must be set before importing mido.
 if sys.platform.startswith("win"):
     os.environ.setdefault("MIDO_BACKEND", "mido.backends.pygame")
 
@@ -48,6 +47,12 @@ from config import *
 import mido
 from pynput.mouse import Controller as Mouse, Button as MButton
 from pynput.keyboard import Controller as Keyboard, Key as KKey
+
+def config_version_detect():
+    if CONFIG_VERSION != VERSION:
+        print('[EZMG] Warning: Main program version mismatches configuration file version.\n'
+          '[EZMG] 警告：程序版本与配置文件版本不匹配\n'
+          f'[EZMG] VERSION = {VERSION} , CONFIG_VERSION = {CONFIG_VERSION}')
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -269,8 +274,8 @@ class Mapper:
     # --------------------- fixed-rate poll: sum sources ---------------------
     def tick(self, dt):
 
-        #超过最大位移就清零
         if self.move_mode == "displacement":
+            #超过最大位移就清零
             if abs(self.wdisp["x"]) > PITCH_DISP_MAX_STEP:
                 self.wdisp["x"] = 0
             if abs(self.wdisp["y"]) > MOD_DISP_MAX_STEP:
@@ -279,6 +284,9 @@ class Mapper:
                 self.kdisp["x"] = 0
             if abs(self.kdisp["y"]) > KNOB_DISP_MAX_STEP:
                 self.kdisp["y"] = 0
+            #mod wheel回弹时位移清零
+            if MOD_ANTI_SPRING and self.pitch == PITCH_CENTER:
+                self.wdisp["x"] = 0
 
         vx = vy = 0.0
         if self.source in ("wheel", "both"):
@@ -301,6 +309,7 @@ def main():
     args = parse_args()
     source = args.source or VIEW_SOURCE
     move_mode = args.move or MOVE_MODE
+    config_version_detect()
 
     if args.list:
         names = mido.get_input_names()

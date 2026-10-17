@@ -18,11 +18,11 @@ Edit this file to modify configurations. Please save and reload after modify.
     then fix the centers/CC numbers from the printed ranges. 
     Please ensure 'config.py' is located in the same folder as this main program.
 """
-CONFIG_VERSION = 1
+CONFIG_VERSION = 1.1
 
 from pynput.keyboard import Key as KKey
-print('[EZMG] You have run a configuration file. To use EZMidiGamer, please run "EZMidiGamer.py".'
-    '\n[EZMG] 您直接运行了配置文件。如需使用 EZMidiGamer，请运行主程序 “EZMidiGamer.py”。')
+# 误运行配置文件的提示
+print('[EZMG] Configuration enabled 配置文件已启用')
 
 # ---------------- CONFIG AREA  配置区 ----------------
 
@@ -42,7 +42,7 @@ MOVE_MODE = "displacement"
 # Common values: 0.005 / 0.01 / 0.02
 POLL_INTERVAL = 0.005
 
-# Run the range calibration on startup 开始时校准，设置为 True 以在运行校准
+# Run the range calibration on startup 开始时校准，设置为 True 以运行校准
 # set True to re-detect and print the actual ranges. 
 CALIBRATE_ON_START = False
 
@@ -71,16 +71,21 @@ KNOB_X_VEL = 10.0
 KNOB_Y_VEL = 10.0
 
 # ---- Displacement gains: pixels / 位移模式灵敏度：单元----
-PITCH_DISP = 0.05
+PITCH_DISP = 0.07
 MOD_DISP = 5
 KNOB_X_DISP = 12.0
 KNOB_Y_DISP = 12.0
 
 # ---- Displacement per-tick limits / 位移模式每tick累积上限 ----
+# Within each tick, if the step is over max step, ban movement
 # 若在某个tick下移动超过该值，不产生移动
-PITCH_DISP_MAX_STEP = 1024
-MOD_DISP_MAX_STEP   = 16
-KNOB_DISP_MAX_STEP  = 20
+PITCH_DISP_MAX_STEP = 2048
+MOD_DISP_MAX_STEP = 16
+KNOB_DISP_MAX_STEP = 256 # 为什么旋钮也要有这个功能？？？ why???
+
+# In displacement mode, if mod wheel spring back to center, ban movement
+# 位移模式下，若mod wheel回弹到中心值，不产生移动
+MOD_ANTI_SPRING = True
 
 # Maximum pixels moved per single tick / 每tick最大移动像素
 # Guards against sudden flings
