@@ -21,6 +21,11 @@ Edit this file to modify configurations. Please save and reload after modify.
 CONFIG_VERSION = 1
 
 from pynput.keyboard import Key as KKey
+print('[EZMG] You have run a configuration file. To use EZMidiGamer, please run "EZMidiGamer.py".'
+    '\n[EZMG] 您直接运行了配置文件。如需使用 EZMidiGamer，请运行主程序 “EZMidiGamer.py”。')
+
+# ---------------- CONFIG AREA  配置区 ----------------
+
 
 # Camera input source 输入方式 : (override with --source)
 # 'wheel' ：pitch-bend for left&right, mod for up&down  / 弯音轮控制左右，Mod 轮控制上下
@@ -34,8 +39,8 @@ VIEW_SOURCE = "both"
 MOVE_MODE = "displacement"
 
 # Main loop poll interval in seconds  主循环间隔
-# Common values: 0.01 / 0.02 / 0.05  
-POLL_INTERVAL = 0.01
+# Common values: 0.005 / 0.01 / 0.02
+POLL_INTERVAL = 0.005
 
 # Run the range calibration on startup 开始时校准，设置为 True 以在运行校准
 # set True to re-detect and print the actual ranges. 
@@ -44,8 +49,8 @@ CALIBRATE_ON_START = False
 # ---- MIDI device selection  MIDI设备选择 ----  
 # Optional device name keyword: if set, program will select the first port whose
 # name contains this string (case-insensitive); or falls back to automatic.
-# 程序会先搜索包含改名称（不分大小写）的第一个端口，无果后自动选择
-MIDI_DEVICE_NAME = "123"
+# 程序会先搜索名称中包含MIDI_DEVICE_NAME（不分大小写）的第一个端口，无果后自动选择
+MIDI_DEVICE_NAME = "Minilab"
 
 # ---- Wheels: centers and dead zones  滑轮中心和死区 ---- 
 PITCH_CENTER = 0
@@ -54,37 +59,37 @@ PITCH_DEADZONE = 512
 MOD_DEADZONE = 16
 
 # ---- Knobs: CC numbers, center and dead zone  旋钮：CC号，中心和死区----  
-KNOB_X_CC = 74
-KNOB_Y_CC = 71
+KNOB_X_CC = 82
+KNOB_Y_CC = 83
 KNOB_VEL_CENTER = 64     # knob position meaning "zero speed"
-KNOB_DEADZONE = 8        # knob velocity dead zone
+KNOB_DEADZONE = 12        # knob velocity dead zone
 
 # ---- Velocity gains: pixels/second / 速度模式灵敏度：单元每秒  ----
 PITCH_VEL = 0.15
 MOD_VEL = 10.0
-KNOB_X_VEL = 6.0
-KNOB_Y_VEL = 6.0
+KNOB_X_VEL = 10.0
+KNOB_Y_VEL = 10.0
 
 # ---- Displacement gains: pixels / 位移模式灵敏度：单元----
-PITCH_DISP = 0.1
-MOD_DISP = 8
+PITCH_DISP = 0.05
+MOD_DISP = 5
 KNOB_X_DISP = 12.0
 KNOB_Y_DISP = 12.0
 
 # ---- Displacement per-tick limits / 位移模式每tick累积上限 ----
-# 若在某个tick下移动超过该值，不产生效果
-PITCH_DISP_MAX_STEP = 2048
+# 若在某个tick下移动超过该值，不产生移动
+PITCH_DISP_MAX_STEP = 1024
 MOD_DISP_MAX_STEP   = 16
 KNOB_DISP_MAX_STEP  = 20
 
 # Maximum pixels moved per single tick / 每tick最大移动像素
 # Guards against sudden flings
-MAX_MOVE = 300
+MAX_MOVE = 256
 
 # Decide how much distance(notch) to move when the wheel scrolled
 # Not related to switch items in the games like Minecraft
 # 设定每次滚轮操作移动距离，与某些游戏的切换物品功能（如MC）无关
-SCROLL_AMOUNT = 5
+SCROLL_AMOUNT = 25
 
 # Direction inversion / 方向反向
 PITCH_INVERT = False
