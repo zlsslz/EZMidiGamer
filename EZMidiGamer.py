@@ -13,53 +13,23 @@ Simply turn any MIDI controller into system mouse/keyboard input,
 so you can play any game with keys, wheels and knobs.
 Originally built for Minilab3 in Minecraft Java Edition.
 
--配置修改 / Configuration settings：
-
-    以下配置参数均可在配置区修改。
-    The following configuration parameters can be modified in the configuration area.
-
-    两个独立设置 / Two independent settings:
-
-    VIEW_SOURCE — 由哪些物理控件驱动视角 / which physical controls drive the camera
-        wheel : 弯音轮(左右) + Mod 轮(上下) / pitch-bend (left/right) + mod (up/down)
-        knob  : 两个旋钮(默认 CC74=左右, CC71=上下) / two knobs (CC74 / CC71)
-        both  : 转轮与旋钮同时生效，移动量叠加 / wheel and knob active together
-
-    MOVE_MODE — 控件位置如何变成视角移动 / how control position becomes camera motion
-        velocity     : 偏离中心量 = 转动速度，推住持续转、松手即停
-                    off-center amount = rotation speed; hold to turn, release to stop
-        displacement : 转动量 = 位移，转多少偏多少，不转不动
-                    amount moved = camera displacement; no input => no motion
-
-    两种方式松手都会停止并在下次操作重新计数。固定频率轮询(POLL_INTERVAL)解决了
-    纯事件驱动 MIDI “控件不动、视角就不动”的问题。
-
-    Both modes stop on release and restart on the next input. A fixed-rate poll loop
-    (POLL_INTERVAL) fixes the "holding the control still does nothing" limitation.
-
-    默认音符映射 / Default note mapping:
-        60 C4  -> A            61 C#4 -> 鼠标左键 / mouse left
-        62 D4  -> W            63 D#4 -> 鼠标右键 / mouse right
-        64 E4  -> D            65 F4  -> S
-        66 F#4 -> 空格 / space  67 G4  -> Shift
-        69 A4  -> Z           
-        72 C5  -> Esc          74 D5  -> E
-        73 C#5  -> 滚轮上 / Scroll up          
-        75 D#5  -> 滚轮下 / Scroll down
-        76 E5  -> F5(切换人称视角 / perspective)
-
-    可选配置 / Optional setting:
-    MIDI_DEVICE_NAME — 填写MIDI设备名称关键字，程序会优先连接名称包含该字符串的设备；
-                    留空则自动选择。 / optional device name keyword; empty = auto select
-
--运行方法 / How to run：
-    安装 / Install:  python -m pip install -r requirements.txt
+-How to run / 运行方法:
+    Install / 安装:  python -m pip install -r requirements.txt
         (python -m pip install mido pygame pynput)
-    运行 / Run:      python EZMidiGamer.py
+    Run / 运行:      python EZMidiGamer.py
                     python EZMidiGamer.py --source wheel --move velocity
                     python EZMidiGamer.py --source both
                     python EZMidiGamer.py --debug
-    退出 / Quit:     Ctrl+C
+    Quit / 退出:     Ctrl+C
+
+-Important: Please modify the configurationin in 'config.py' yourself during first use. 
+    If you are not sure about the range of your pitch bend wheel or knob, 
+    set 'CALIBRATE_ON_START = True' and run for calibration.
+    Please ensure 'config.py' is located in the same folder as this main program.
+
+-注意：请在第一次使用时在 “config.py” 自行修改配置内容。 
+    若不清楚您的弯音轮或旋钮的范围，请设置：“CALIBRATE_ON_START = True”，然后运行以校准。
+    请确保 “config.py” 与主程序在同一文件夹内。
 """
 
 import argparse
@@ -72,100 +42,12 @@ import time
 if sys.platform.startswith("win"):
     os.environ.setdefault("MIDO_BACKEND", "mido.backends.pygame")
 
+#导入config
+from config import *
+
 import mido
 from pynput.mouse import Controller as Mouse, Button as MButton
 from pynput.keyboard import Controller as Keyboard, Key as KKey
-
-
-# ============================ Configuration 配置区 ============================
-# Camera input source 输入方式 : 'wheel' | 'knob' | 'both' (override with --source)
-VIEW_SOURCE = "both"
-# Camera move mode 移动模式 : 'velocity' | 'displacement' (override with --move)
-MOVE_MODE = "velocity"
-
-# Main loop poll interval in seconds.  主循环间隔
-# Common values: 0.02 / 0.05 / 0.2 
-POLL_INTERVAL = 0.02
-
-# Run the range calibration on startup 开始时校准
-# defaults are hard-coded; set True to re-detect and print the actual ranges. 
-CALIBRATE_ON_START = False
-
-# ---- MIDI device selection  MIDI设备选择 ----  
-# Optional device name keyword: if set, program will select the first port whose
-# name contains this string (case-insensitive); or falls back to automatic.
-MIDI_DEVICE_NAME = "123"
-
-# ---- Wheels: centers and dead zones  滑轮中心和死区 ---- 
-# This device reports signed pitch-bend in -8192..8191 (center 0) and the
-# modulation wheel in 0..127 (center 63). Re-run calibration if yours differs.
-PITCH_CENTER = 0
-MOD_CENTER = 63
-PITCH_DEADZONE = 512
-MOD_DEADZONE = 16
-
-# ---- Knobs: CC numbers, center and dead zone  旋钮：CC号，中心和死区----  
-KNOB_X_CC = 74
-KNOB_Y_CC = 71
-KNOB_VEL_CENTER = 64     # knob position meaning "zero speed"
-KNOB_DEADZONE = 8        # knob velocity dead zone
-
-# ---- Velocity gains: pixels/second  速度模式灵敏度：单元每秒  ----
-PITCH_VEL = 0.15
-MOD_VEL = 10.0
-KNOB_X_VEL = 6.0
-KNOB_Y_VEL = 6.0
-
-# ---- Displacement gains: pixels  位移模式灵敏度：单元----
-PITCH_DISP = 0.003
-MOD_DISP = 1.8
-KNOB_X_DISP = 12.0
-KNOB_Y_DISP = 12.0
-
-# Maximum pixels moved per single tick  每tick最大移动像素
-# Guards against sudden flings
-MAX_MOVE = 300
-
-# Decide how much distance(notch) to move when the wheel scrolled
-# Not related to switch items in the games like Minecraft
-# 设定每次滚轮操作移动距离，与某些游戏的切换物品功能能（如MC）无关
-SCROLL_AMOUNT = 5
-
-# Direction inversion  方向反向
-PITCH_INVERT = False
-MOD_INVERT = True
-KNOB_INVERT_X = False
-KNOB_INVERT_Y = True
-
-# Note mapping: MIDI note number -> (kind, value)
-# 按键映射：MIDI按键编号 -> （按键种类，按键名称）
-#   kind 'key'  : a keyboard key (a character, or a pynput Key such as KKey.esc)
-#   kind 'mouse': 'left' / 'right' / 'middle' mouse button
-#   kind 'scroll': 'up' / 'down' to scroll
-# Example 示例 : 60: ("key", "a")
-# C3=48, C4=60, C5=72, C6=84
-NOTE_MAP = {
-    60: ("key", "a"),            # C4  -> A
-    61: ("mouse", "left"),       # C#4 -> mouse left
-    62: ("key", "w"),            # D4  -> W
-    63: ("mouse", "right"),      # D#4 -> mouse right
-    64: ("key", "d"),            # E4  -> D
-    65: ("key", "s"),            # F4  -> S
-    66: ("key", KKey.space),     # F#4 -> Space
-    67: ("key", KKey.shift),     # G4  -> Shift
-    69: ("key", 'z'),            # A4  -> Z
-    72: ("key", KKey.esc),       # C5  -> Esc
-    73: ("scroll", "up"),        # C#5 -> Scroll Up
-    74: ("key", "e"),            # D5  -> E
-    75: ("scroll", "down"),      # D#5 -> Scroll Down
-    76: ("key", KKey.f5),        # E5  -> F5
-}
-
-# Press which key to quit this program  按下此键退出程序 
-QUIT_NOTE = 84  # Default: 84(C6)
-
-# ========================================================================
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -224,7 +106,7 @@ def find_port(wanted):
     
     if idx is None:
         idx = 0
-        print(f"[EZMG] Defaulting to:  已自动设置： [{idx+1}] {names[idx]}")
+        print(f"[EZMG] Defaulting to:  已自动设置: [{idx+1}] {names[idx]}")
 
     print("[EZMG] Available MIDI input ports:  可用MIDI端口：")
     for i, name in enumerate(names):
@@ -237,7 +119,7 @@ def calibrate(port, seconds=10.0):   #校准
     """Print the observed ranges of the wheels and knobs to verify defaults."""
     print(f"[EZMG] Calibrating for {seconds:.0f}s: move the pitch/mod wheels fully and "
           "turn both knobs through their full range...\n"
-          "[EZMG] 校准中，时长10秒：请完整移动pitch/mod轮，并将两个旋钮都旋转至其最大范围……")
+          f"[EZMG] 校准中，时长 {seconds:.0f} 秒：移动用于操控的弯音轮、Mod 轮和旋钮，使其达到最大范围……")
     pitches, mods, cc_ranges = [], [], {}
     deadline = time.time() + seconds
 
@@ -386,6 +268,18 @@ class Mapper:
 
     # --------------------- fixed-rate poll: sum sources ---------------------
     def tick(self, dt):
+
+        #超过最大位移就清零
+        if self.move_mode == "displacement":
+            if abs(self.wdisp["x"]) > PITCH_DISP_MAX_STEP:
+                self.wdisp["x"] = 0
+            if abs(self.wdisp["y"]) > MOD_DISP_MAX_STEP:
+                self.wdisp["y"] = 0
+            if abs(self.kdisp["x"]) > KNOB_DISP_MAX_STEP:
+                self.kdisp["x"] = 0
+            if abs(self.kdisp["y"]) > KNOB_DISP_MAX_STEP:
+                self.kdisp["y"] = 0
+
         vx = vy = 0.0
         if self.source in ("wheel", "both"):
             wx, wy = self._wheel_contrib(dt)
