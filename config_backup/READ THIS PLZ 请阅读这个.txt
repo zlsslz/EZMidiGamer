@@ -1,0 +1,7 @@
+这个文件夹用于保存其它版本的 config.py 。
+在这里修改配置是无效的。主程序不会读这个文件夹。
+您可以选择替换这里的文件到 config.py 。
+
+This folder is used to store other versions of config.py.
+Modifying the configuration here is ineffective. The main program will not read this folder.
+You can choose to replace the file here with config.py.
